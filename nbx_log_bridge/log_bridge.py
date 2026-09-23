@@ -129,41 +129,13 @@ class NbxLogBridge(Node):
 
         self._publisher = self.create_publisher(
             Log, '/nbx_lemma/logs', output_qos(self._history_depth))
-        print(
-            '[nbx_log_bridge] publisher created: '
-            f'/nbx_lemma/logs (depth={self._history_depth}, '
-            'reliable, transient_local)',
-            flush=True,
-        )
-
-        print(
-            '[nbx_log_bridge] creating /rosout subscription '
-            '(depth=1000, reliable, transient_local)',
-            flush=True,
-        )
         self._subscription = self.create_subscription(
             Log, '/rosout', self._handle_log, rosout_qos())
-        print('[nbx_log_bridge] /rosout subscription created', flush=True)
 
     def _handle_log(self, record: Log) -> None:
-        print(
-            '[nbx_log_bridge] received /rosout record: '
-            f'level={record.level} name={record.name!r}',
-            flush=True,
-        )
         forwarded = filter_log(record, self._max_message_bytes)
         if forwarded is not None:
-            print(
-                '[nbx_log_bridge] forwarding record to /nbx_lemma/logs: '
-                f'level={forwarded.level} name={forwarded.name!r}',
-                flush=True,
-            )
             self._publisher.publish(forwarded)
-        else:
-            print(
-                '[nbx_log_bridge] ignored record below WARN severity',
-                flush=True,
-            )
 
 
 def main(args=None) -> None:
